@@ -29,7 +29,12 @@ static NSString *kURLKey = @"kURLKey";
 
 + (instancetype)configurationWithFilePath:(NSString *)filePath {
     filePath = [self configurationFilePathForFilePath:filePath];
-    VICacheConfiguration *configuration = [NSKeyedUnarchiver unarchiveObjectWithFile:filePath];
+    //VICacheConfiguration *configuration = [NSKeyedUnarchiver unarchiveObjectWithFile:filePath];
+    
+    NSData* data = [NSData dataWithContentsOfFile:filePath];    
+    NSKeyedUnarchiver* unarchiver = [[NSKeyedUnarchiver alloc] initForReadingFromData:data error:nil];
+    unarchiver.requiresSecureCoding = NO;
+    VICacheConfiguration *configuration = [unarchiver decodeTopLevelObjectForKey:NSKeyedArchiveRootObjectKey error:nil];
     
     if (!configuration) {
         configuration = [[VICacheConfiguration alloc] init];
@@ -132,7 +137,10 @@ static NSString *kURLKey = @"kURLKey";
 
 - (void)save {
     @synchronized (self.internalCacheFragments) {
-        [NSKeyedArchiver archiveRootObject:self toFile:self.filePath];
+        //[NSKeyedArchiver archiveRootObject:self toFile:self.filePath];
+        NSData* data = [NSKeyedArchiver archivedDataWithRootObject:self requiringSecureCoding:NO error:nil];
+        [data writeToFile:self.filePath atomically:YES];
+
     }
 }
 
